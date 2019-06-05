@@ -37,7 +37,9 @@ class CalendarList extends Component {
     // Style for the List item (the calendar)
     calendarStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.number, PropTypes.array]),
     // Whether to use static header that will not scroll with the list (horizontal only)
-    staticHeader: PropTypes.bool
+    staticHeader: PropTypes.bool,
+    // Whether to scroll to the selected month on render
+    shouldInitiallyScrollToMonth: PropTypes.bool
   }
 
   static defaultProps = {
@@ -49,7 +51,8 @@ class CalendarList extends Component {
     showScrollIndicator: false,
     scrollEnabled: true,
     scrollsToTop: false,
-    removeClippedSubviews: Platform.OS === 'android' ? false : true
+    removeClippedSubviews: Platform.OS === 'android' ? false : true,
+    shouldInitiallyScrollToMonth: true
   }
 
   constructor(props) {
@@ -89,6 +92,14 @@ class CalendarList extends Component {
     this.renderCalendarBound = this.renderCalendar.bind(this);
     this.getItemLayout = this.getItemLayout.bind(this);
     this.onLayout = this.onLayout.bind(this);
+  }
+
+  get initialScrollIndex() {
+    if (!this.state.openDate || !this.props.shouldInitiallyScrollToMonth) {
+      return undefined;
+    }
+
+    return this.state.openDate ? this.getMonthIndex(this.state.openDate) : false;
   }
 
   onLayout(event) {
@@ -279,12 +290,12 @@ class CalendarList extends Component {
           ref={(c) => this.listView = c}
           //scrollEventThrottle={1000}
           style={[this.style.container, this.props.style]}
-          initialListSize={this.props.pastScrollRange + this.props.futureScrollRange + 1}
+          initialNumToRender={this.props.pastScrollRange + this.props.futureScrollRange + 1}
           data={this.state.rows}
           //snapToAlignment='start'
           //snapToInterval={this.calendarHeight}
           removeClippedSubviews={this.props.removeClippedSubviews}
-          pageSize={1}
+          // pageSize={1}
           horizontal={this.props.horizontal}
           pagingEnabled={this.props.pagingEnabled}
           onViewableItemsChanged={this.onViewableItemsChangedBound}
@@ -294,7 +305,7 @@ class CalendarList extends Component {
           showsHorizontalScrollIndicator={this.props.showScrollIndicator}
           scrollEnabled={this.props.scrollEnabled}
           keyExtractor={(item, index) => String(index)}
-          initialScrollIndex={this.state.openDate ? this.getMonthIndex(this.state.openDate) : false}
+          initialScrollIndex={this.initialScrollIndex}
           getItemLayout={this.getItemLayout}
           scrollsToTop={this.props.scrollsToTop}
         />
